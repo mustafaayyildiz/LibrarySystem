@@ -68,6 +68,13 @@ public class Member {
 		return removed;
 	}
 	
+	public Iterator<Hold> getHolds() {
+		if (booksOnHold.isEmpty()) {
+			return null;
+		}
+		return booksOnHold.listIterator();
+	}
+	
 	public String getId() {
 		return id;
 	}

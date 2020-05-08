@@ -247,10 +247,27 @@ public class Library {
 
 	public void deleteAllinValidHolds() {
 		Iterator<Member> itrMember = memberList.getMembers();
-		Iterator<Book> itrBook = catalog.getBooks();
 		while(itrMember.hasNext()) {
 			Member member = itrMember.next();
-			//Hold hold = 
+			Iterator<Hold> itrHold = member.getHolds();
+			while (itrHold.hasNext()) {
+				Hold hold = itrHold.next();
+				if (!hold.isValid()) {
+					member.removeHold(hold.getBook().getId());
+				}
+			}
+		}
+		
+		Iterator<Book> itrBook = catalog.getBooks();
+		while(itrBook.hasNext()) {
+			Book book = itrBook.next();
+			Iterator<Hold> itrHold = book.getHolds();
+			while(itrHold.hasNext()) {
+				Hold hold = itrHold.next();
+				if (!hold.isValid()) {
+					book.removeHold(hold.getMember().getId());
+				}
+			}
 		}
 	}
 }
