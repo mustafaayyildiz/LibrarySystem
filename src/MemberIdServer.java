@@ -14,7 +14,7 @@ public class MemberIdServer implements Serializable{
 	private MemberIdServer() {
 		idCounter = 1;
 	}
-	public static MemberIdServer instance() {
+	public static MemberIdServer getInstance() {
 		if (server == null) {
 			return (server = new MemberIdServer());
 		} else {
@@ -28,6 +28,5 @@ public class MemberIdServer implements Serializable{
 	
 	public static void retrieve(ObjectInputStream input) {
 		// TODO Auto-generated method stub
-		
 	}
 }

@@ -4,24 +4,28 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class Library {
 	public static final int BOOK_NOT_FOUND = 1;
 	public static final int BOOK_NOT_ISSUED = 2;
 	private static MemberList memberList = new MemberList();
 	private static Catalog catalog = new Catalog();
-	private static Library libraryInstance;
+	private static Library library;
 	
 	private Library() {
 
 	}
 	
 	public static Library getInstance() {
-		if (libraryInstance == null) {
-			libraryInstance = new Library();
+		if (library == null) {
+			library = new Library();
 		}
-		return libraryInstance;
+		return library;
 	}
 	
 	public Book addBook(String title, String author, String id) {
@@ -211,8 +215,8 @@ public class Library {
 			FileOutputStream file = new FileOutputStream("LibraryData");
 			@SuppressWarnings("resource")
 			ObjectOutputStream output = new ObjectOutputStream(file);
-			output.writeObject(libraryInstance);
-			output.writeObject(MemberIdServer.instance());
+			output.writeObject(library);
+			output.writeObject(MemberIdServer.getInstance());
 			return true;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
@@ -226,7 +230,7 @@ public class Library {
 			ObjectInputStream input = new ObjectInputStream(file);
 			input.readObject();
 			MemberIdServer.retrieve(input);
-			return libraryInstance;
+			return library;
 		} catch(IOException ioe) {
 			ioe.printStackTrace();
 			return null;
@@ -246,6 +250,8 @@ public class Library {
 	}
 
 	public void deleteAllinValidHolds() {
+		boolean allInValidHoldsDeleted = true;
+
 		Iterator<Member> itrMember = memberList.getMembers();
 		while(itrMember.hasNext()) {
 			Member member = itrMember.next();
@@ -269,5 +275,6 @@ public class Library {
 				}
 			}
 		}
+		//return allInValidHoldsDeleted;
 	}
 }

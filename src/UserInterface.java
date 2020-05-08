@@ -291,6 +291,7 @@ public class UserInterface {
 	}
 	
 	public void deleteAllinValidHolds() {
+		library.deleteAllinValidHolds();
 		/*boolean isDeleted = library.deleteAllinValidHolds();
 		if (isDeleted) {
 			System.out.println("The operation was successful.");
@@ -307,7 +308,7 @@ public class UserInterface {
 	
 	/* TODO: Not Implemented */
 	private void save() {
-		if (library.save()) {
+		if (Library.save()) {
 			System.out.println("The library has been successfully saved" );
 		} else {
 			System.out.println("There has been an error in saving \n" );
