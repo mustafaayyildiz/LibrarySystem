@@ -1,8 +1,8 @@
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.UUID;
 import java.util.Iterator;
 
 public class Member {
@@ -14,8 +14,8 @@ public class Member {
 	private List<Book> booksBorrowed = new LinkedList<Book>();
 	private List<Transaction> transactions = new LinkedList<Transaction>();
 	
-	public Member (String name, String address, String phone) {
-		this.id = UUID.randomUUID().toString();
+	public Member (String id, String name, String address, String phone) {
+		this.id = id;
 		this.name = name;
 		this.address = address;
 		this.phone = phone;
@@ -34,10 +34,17 @@ public class Member {
 	}
 	
 	public boolean renew(Book book) {
-		if (book == null) {
+		try {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(new Date());
+			calendar.add(Calendar.MONTH, 1);
+			Date date = calendar.getTime();
+			book.setDueDate(date);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
-		}
-		return issue(book);
+		}		
 	}
 	
 	public void placeHold(Hold hold) {
@@ -69,9 +76,6 @@ public class Member {
 	}
 	
 	public Iterator<Hold> getHolds() {
-		if (booksOnHold.isEmpty()) {
-			return null;
-		}
 		return booksOnHold.listIterator();
 	}
 	
@@ -116,7 +120,7 @@ public class Member {
 	}
 	
 	public Iterator<Book> getBooksIssued() {
-		return booksBorrowed.iterator();
+		return booksBorrowed.listIterator();
 	}
 
 	@Override

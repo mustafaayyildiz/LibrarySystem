@@ -30,11 +30,13 @@ public class UserInterface {
 	}
 	
 	public void process() {
+		library.retrieve();
 		do {
 			help();	
 			System.out.print("Process : ");
 			Requests command = Requests.getRequestFromValue(getCommand());	
 			if (command == Requests.EXIT) {
+				save();
 				break;
 			}
 			switch (command) {
@@ -87,13 +89,15 @@ public class UserInterface {
 		Member result;
 		scan = new Scanner(System.in);
 		do {
+			System.out.print("Enter id : ");
+			String id = scan.nextLine();
 			System.out.print("Enter name : ");
 			String name = scan.nextLine();
 			System.out.print("Enter address : ");
 			String address = scan.nextLine();
 			System.out.print("Enter phone : ");
 			String phone = scan.nextLine();
-			result = library.addMember(name, address, phone);
+			result = library.addMember(id, name, address, phone);
 			if (result != null) {
 				System.out.println(result);
 			} else {
@@ -115,7 +119,7 @@ public class UserInterface {
 			String title = scan.nextLine();
 			System.out.print("Enter author : ");
 			String author = scan.nextLine();
-			result = library.addBook(title, author, bookID);
+			result = library.addBook(bookID, title, author);
 			if (result != null) {
 				System.out.println(result);
 			} else {
@@ -159,12 +163,14 @@ public class UserInterface {
 			System.out.print("Enter book id : ");
 			String bookID = scan.nextLine();
 			result = library.returnBook(bookID);
-			if (result == 1) {
+			if (result == Library.NOT_FOUND) {
 				System.out.println("Invalid Book ID");
-			} else if (result == 2) {
+			} else if (result == Library.SUCCESSFULL) {
 				System.out.println("The operation was successful");
-			} else {
+			} else if (result == Library.SUCCESSFULL_AND_HOLD) { 
 				System.out.println("The operation was successful and there is a hold on the book.");
+			} else {
+				System.out.println("The operation was failed.");
 			}
 		} while (yesOrNo("Return more books?"));
 	}
@@ -176,12 +182,12 @@ public class UserInterface {
 			System.out.print("Enter book id : ");
 			String bookID = scan.nextLine();
 			result = library.removeBook(bookID);
-			if (result == -1) {
+			if (result == Library.NOT_FOUND) {
 				System.out.println("Invalid Book ID");
-			} else if (result == 0) { 
-				System.out.println("The operation was failed.");
-			} else {
+			} else if (result == Library.SUCCESSFULL) { 
 				System.out.println("The operation was successful.");
+			} else {
+				System.out.println("The operation was failed.");
 			}
 		} while (yesOrNo("Delete more books?"));
 	}
@@ -223,9 +229,9 @@ public class UserInterface {
 		System.out.print("Enter duration : ");
 		int duration = scan.nextInt();
 		result = library.placeHold(memberID, bookID, duration);
-		if (result == -1) {
+		if (result == Library.NOT_FOUND) {
 			System.out.println("Invalid UserID or BookID");
-		} else if (result == 1) {
+		} else if (result == Library.SUCCESSFULL) {
 			System.out.println("The operation was successful.");
 		} else {
 			System.out.println("The operation was failed.");
@@ -254,9 +260,9 @@ public class UserInterface {
 		System.out.print("Enter book ID : ");
 		String bookID = scan.nextLine();
 		result = library.removeHold(memberID, bookID);
-		if (result == -1) {
+		if (result == Library.NOT_FOUND) {
 			System.out.println("Invalid memberID or bookID");
-		} else if (result == 1) {
+		} else if (result == Library.SUCCESSFULL) {
 			System.out.println("The operation was successful.");
 		} else {
 			System.out.println("The operation was failed.");
@@ -291,13 +297,12 @@ public class UserInterface {
 	}
 	
 	public void deleteAllinValidHolds() {
-		library.deleteAllinValidHolds();
-		/*boolean isDeleted = library.deleteAllinValidHolds();
+		boolean isDeleted = library.deleteAllinValidHolds();
 		if (isDeleted) {
 			System.out.println("The operation was successful.");
 		} else {
 			System.out.println("The operation was failed.");
-		}*/
+		}
 	}
 	
 	public boolean yesOrNo(String question) {
@@ -308,7 +313,7 @@ public class UserInterface {
 	
 	/* TODO: Not Implemented */
 	private void save() {
-		if (Library.save()) {
+		if (library.save()) {
 			System.out.println("The library has been successfully saved" );
 		} else {
 			System.out.println("There has been an error in saving \n" );

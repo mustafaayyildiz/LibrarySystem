@@ -14,10 +14,10 @@ public class Book {
 	private Calendar calendar = Calendar.getInstance();
 	private Date dueDate;
 	
-	public Book(String title, String author, String id) {
+	public Book(String id, String title, String author) {
+		this.id = id;
 		this.title = title;
 		this.author = author;
-		this.id = id;
 	}
 	
 	public boolean issue(Member member) {
@@ -50,10 +50,17 @@ public class Book {
 	}
 	
 	public boolean renew(Member member) {
-		if (member == null) {
+		try {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(new Date());
+			calendar.add(Calendar.MONTH, 1);
+			Date date = calendar.getTime();
+			this.setDueDate(date);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
-		}
-		return issue(member);
+		}	
 	}
 	
 	public void placeHold(Hold hold) {
@@ -73,9 +80,6 @@ public class Book {
 	}
 	
 	public Iterator<Hold> getHolds() {
-		if (holds.isEmpty()) {
-			return null;
-		}
 		return holds.listIterator();
 	}
 	
@@ -98,6 +102,10 @@ public class Book {
 		return dueDate;
 	}
 	
+	public void setDueDate(Date dueDate) {
+		this.dueDate = dueDate ;
+	}
+	
 	public Member getBorrower() {
 		return borrowedBy;
 	}
@@ -115,6 +123,6 @@ public class Book {
 	}
 	
 	public String toString() {
-		return "Book : \n	title : " + title + "\n	author : " + author;
+		return "Book :\n	id : " + id + "\n	title : " + title + "\n	author : " + author;
 	}
 }

@@ -1,18 +1,14 @@
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class Library {
-	public static final int BOOK_NOT_FOUND = 1;
-	public static final int BOOK_NOT_ISSUED = 2;
+	protected static final int NOT_FOUND = 0;
+	protected static final int SUCCESSFULL_AND_HOLD = 1;
+	protected static final int SUCCESSFULL = 2;
+	protected static final int FAILED = 3;
+	
 	private static MemberList memberList = new MemberList();
 	private static Catalog catalog = new Catalog();
 	private static Library library;
@@ -28,16 +24,16 @@ public class Library {
 		return library;
 	}
 	
-	public Book addBook(String title, String author, String id) {
-		Book book = new Book(title, author, id);
+	public Book addBook(String id, String title, String author) {
+		Book book = new Book(id, title, author);
 		if (catalog.insertBook(book)) {
 			return book;
 		}
 		return null;
 	}
 	
-	public Member addMember(String name, String address, String phone) {
-		Member member = new Member(name, address, phone);
+	public Member addMember(String id, String name, String address, String phone) {
+		Member member = new Member(id, name, address, phone);
 		if (memberList.insertMember(member)) {
 			return member;
 		}
@@ -65,48 +61,48 @@ public class Library {
 	public int returnBook(String bookId) {
 		Book book = catalog.search(bookId);
 		if (book == null) {
-			return 1;
+			return NOT_FOUND;
 		}
 		
 		Member member = book.returnBook();
 		if (member == null) {
-			return -1;
+			return NOT_FOUND;
 		}
 		boolean hasHold = book.hasHold();
 		boolean receiveBookFromMember = member.returnBook(book);
 		if (receiveBookFromMember && hasHold) {
-			return 3;
+			return SUCCESSFULL_AND_HOLD;
 		} else if (receiveBookFromMember) {
-			return 2;
+			return SUCCESSFULL;
 		}
 		
-		return -1;
+		return FAILED;
 	}
 	
 	public int removeBook(String bookId) {
 		Book book = catalog.search(bookId);
 		
 		if (book == null) {
-			return -1;
+			return NOT_FOUND;
 		}
 		
 		boolean hasHold = book.hasHold();
 		Member member = book.getBorrower();
 		if (member == null && !hasHold) {
 			if (catalog.removeBook(bookId));
-				return 1;
+				return SUCCESSFULL;
 		}
-		return 0;
+		return FAILED;
 	}
 	
 	public int placeHold(String memberId, String bookId, int duration) {
 		Member member = memberList.search(memberId);
 		if (member == null) {
-			return -1;
+			return NOT_FOUND;
 		}
 		Book book = catalog.search(bookId);
 		if (book == null) {
-			return -1;
+			return NOT_FOUND;
 		}
 		
 		Member borrower = book.getBorrower();
@@ -114,9 +110,9 @@ public class Library {
 			Hold hold = new Hold(member, book, duration);
 			book.placeHold(hold);
 			member.placeHold(hold);
-			return 1;
+			return SUCCESSFULL;
 		}
-		return 0;
+		return FAILED;
 	}
 	
 	public Member processHold(String bookId) {
@@ -142,21 +138,21 @@ public class Library {
 	public int removeHold(String memberId, String bookId) {
 		Member member = memberList.search(memberId);
 		if (member == null) {
-			return -1;
+			return NOT_FOUND;
 		}
 		
 		Book book = catalog.search(bookId);
 		if (book == null) {
-			return -1;
+			return NOT_FOUND;
 		}
 		
 		boolean removeHoldFromBook = book.removeHold(memberId);
 		boolean removeHoldFromMember = member.removeHold(bookId);
 
 		if (removeHoldFromBook && removeHoldFromMember) {
-			return 1;
+			return SUCCESSFULL;
 		}
-		return 0;
+		return FAILED;
 	}
 	
 	public Member searchMembership(String memberId) {
@@ -171,24 +167,11 @@ public class Library {
 			return null;
 		}
 		
-		Iterator<Book> iterator = catalog.getBooks();
-		Book book = null;
-		while (iterator.hasNext()) {
-			Book tmp = iterator.next();
-			if (tmp.getId().equals(bookId)) {
-				book = tmp;
-				break;
-			}
-		}
+		Book book = catalog.search(bookId);
+		Member member = memberList.search(memberId);
 		
-		Member member = null;
-		Iterator<Member> itr = memberList.getMembers();
-		while (itr.hasNext()) {
-			Member tmp = itr.next();
-			if (tmp.getId().equals(memberId)) {
-				member = tmp;
-				break;
-			}
+		if (book == null || member == null) {
+			return null;
 		}
 		
 		boolean renewToMember = member.renew(book);
@@ -210,34 +193,14 @@ public class Library {
 		return null;
 	}
 	
-	public static boolean save() {
-		try {
-			FileOutputStream file = new FileOutputStream("LibraryData");
-			@SuppressWarnings("resource")
-			ObjectOutputStream output = new ObjectOutputStream(file);
-			output.writeObject(library);
-			output.writeObject(MemberIdServer.getInstance());
-			return true;
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
-		}
+	public boolean save() {
+		return catalog.save() && memberList.save();
 	}
 	
-	public static Library retrieve() {
-		try {
-			FileInputStream file = new FileInputStream("LibraryData");
-			ObjectInputStream input = new ObjectInputStream(file);
-			input.readObject();
-			MemberIdServer.retrieve(input);
-			return library;
-		} catch(IOException ioe) {
-			ioe.printStackTrace();
-			return null;
-		} catch(ClassNotFoundException cnfe) {
-			cnfe.printStackTrace();
-			return null;
-		}
+	public void retrieve() {
+		catalog.retrieve();
+		System.out.println("--------------------------");
+		memberList.retrieve();
 	}
 
 	public Iterator<Transaction> getTransactions(String memberID, Calendar date) {
@@ -249,32 +212,26 @@ public class Library {
 		return member.getTransactions(date);
 	}
 
-	public void deleteAllinValidHolds() {
-		boolean allInValidHoldsDeleted = true;
-
-		Iterator<Member> itrMember = memberList.getMembers();
-		while(itrMember.hasNext()) {
-			Member member = itrMember.next();
-			Iterator<Hold> itrHold = member.getHolds();
-			while (itrHold.hasNext()) {
-				Hold hold = itrHold.next();
-				if (!hold.isValid()) {
-					member.removeHold(hold.getBook().getId());
+	public boolean deleteAllinValidHolds() {
+		try {
+			Iterator<Member> itrMember = memberList.getMembers();
+			while(itrMember.hasNext()) {
+				Member member = itrMember.next();
+				Iterator<Hold> itrHold = member.getHolds();
+				while (itrHold.hasNext()) {
+					Hold hold = itrHold.next();
+					if (!hold.isValid()) {
+						Book book = hold.getBook();
+						member.removeHold(book.getId());
+						book.removeHold(member.getId());
+					}
 				}
 			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
 		}
 		
-		Iterator<Book> itrBook = catalog.getBooks();
-		while(itrBook.hasNext()) {
-			Book book = itrBook.next();
-			Iterator<Hold> itrHold = book.getHolds();
-			while(itrHold.hasNext()) {
-				Hold hold = itrHold.next();
-				if (!hold.isValid()) {
-					book.removeHold(hold.getMember().getId());
-				}
-			}
-		}
-		//return allInValidHoldsDeleted;
 	}
 }
