@@ -1,14 +1,12 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 public class MemberList {
-	private static final String FILE_NAME = "memberList.txt";
 	private List<Member> memberList = new LinkedList<Member>();
 	
 	public Member search(String memberId) {
@@ -32,46 +30,54 @@ public class MemberList {
 		return false;
 	}
 	
-	public Iterator<Member> getMembers() {
+	public ListIterator<Member> getMembers() {
 		return memberList.listIterator();
 	}
 	
-	public boolean retrieve() {
-		try {
-			File file = new File(FILE_NAME);
-			if (file.exists() && file.canRead()) {
-				BufferedReader br = new BufferedReader(new FileReader(file)); 
-				  
-				String st; 
-				while ((st = br.readLine()) != null) {
-					String member[] = st.split(",");
-					memberList.add(new Member(member[0], member[1], member[2], member[3]));
-				}
-				br.close();
-				
-				Iterator<Member> itr = memberList.iterator();
-				while(itr.hasNext()) {
-					System.out.println(itr.next());
-				}
-				return true;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void retrieve(Iterator<JSONObject> itrMember) {
+		while(itrMember.hasNext()) {
+			JSONObject member = (JSONObject) itrMember.next();
+			memberList.add(new Member(member.get("MemberID").toString(), member.get("MemberName").toString(), 
+					member.get("MemberAddress").toString(), member.get("MemberPhone").toString()));
 		}
-		return false;
+		
+		Iterator<Member> itr = memberList.iterator();
+		while(itr.hasNext()) {
+			System.out.println(itr.next());
+		}
 	}
 	
-	public boolean save(){
-        try {
-        	PrintWriter writer = new PrintWriter(FILE_NAME, "UTF-8");
-            for(Member element : memberList){
-            	writer.println(element.getId()+","+element.getName()+","+element.getAddress()+","+element.getPhone());
-            }
-            writer.close();
-            return true;
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return false;
-        }
-    }
+	@SuppressWarnings("unchecked")
+	public JSONArray generateMemberList() {
+		JSONArray memberListJSON = new JSONArray();
+		Iterator<Member> itr = memberList.iterator();
+		while(itr.hasNext()) {
+			JSONObject memberJSON = new JSONObject();
+			Member member = itr.next();
+			memberJSON.put("MemberID", member.getId());
+			memberJSON.put("MemberName", member.getName());
+			memberJSON.put("MemberAddress", member.getAddress());
+			memberJSON.put("MemberPhone", member.getPhone());
+			JSONArray holdJSONArray = new JSONArray();
+        	Iterator<Hold> holdItr = member.getHolds();
+        	while(holdItr.hasNext()) {
+        		Hold hold = holdItr.next();
+        		JSONObject holdJSONObject = new JSONObject();
+        		holdJSONObject.put("BookID", hold.getBook().getId());
+        		holdJSONArray.add(holdJSONObject);
+        	}
+        	memberJSON.put("Holds", holdJSONArray);
+        	JSONArray borrowedBooksJSONArray = new JSONArray();
+        	Iterator<Book> itrBook = member.getBooksIssued();
+        	while(itrBook.hasNext()) {
+        		JSONObject borrowedBooksJSONObj = new JSONObject();
+        		Book book = itrBook.next();
+        		borrowedBooksJSONObj.put("BookID", book.getId());
+        		borrowedBooksJSONArray.add(borrowedBooksJSONObj);
+        	}
+        	memberJSON.put("BorrowedBooks", borrowedBooksJSONArray);
+        	memberListJSON.add(memberJSON);
+		}
+		return memberListJSON;
+	}
 }

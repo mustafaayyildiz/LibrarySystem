@@ -69,13 +69,13 @@ public class Member {
 			if (id.equals(bookId)) {
 				transactions.add(new Transaction ("-Hold Removed ", hold.getBook().getTitle()));
 				removed = true;
-				booksOnHold.remove(hold);
+				iterator.remove();
 			}
 		}
 		return removed;
 	}
 	
-	public Iterator<Hold> getHolds() {
+	public ListIterator<Hold> getHolds() {
 		return booksOnHold.listIterator();
 	}
 	

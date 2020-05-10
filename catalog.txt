@@ -1,4 +1,0 @@
-1,sinekli bakkal,halide edip adivar
-2,nutuk,ataturk
-3,yaprak dokumu,halit ziya usakligil
-4,at ciftligi,celal uster

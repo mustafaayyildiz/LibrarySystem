@@ -1,7 +1,14 @@
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public class Library {
 	protected static final int NOT_FOUND = 0;
@@ -106,7 +113,7 @@ public class Library {
 		}
 		
 		Member borrower = book.getBorrower();
-		if (borrower != null) {
+		if (borrower != null && !borrower.getId().equals(memberId)) {
 			Hold hold = new Hold(member, book, duration);
 			book.placeHold(hold);
 			member.placeHold(hold);
@@ -193,16 +200,6 @@ public class Library {
 		return null;
 	}
 	
-	public boolean save() {
-		return catalog.save() && memberList.save();
-	}
-	
-	public void retrieve() {
-		catalog.retrieve();
-		System.out.println("--------------------------");
-		memberList.retrieve();
-	}
-
 	public Iterator<Transaction> getTransactions(String memberID, Calendar date) {
 		Member member = searchMembership(memberID);
 		if (member == null) {
@@ -213,6 +210,7 @@ public class Library {
 	}
 
 	public boolean deleteAllinValidHolds() {
+		List<Hold> deletedWillHoldList = new ArrayList<Hold>();
 		try {
 			Iterator<Member> itrMember = memberList.getMembers();
 			while(itrMember.hasNext()) {
@@ -221,11 +219,16 @@ public class Library {
 				while (itrHold.hasNext()) {
 					Hold hold = itrHold.next();
 					if (!hold.isValid()) {
-						Book book = hold.getBook();
-						member.removeHold(book.getId());
-						book.removeHold(member.getId());
+						deletedWillHoldList.add(hold);
 					}
 				}
+			}
+			
+			for(Hold hold : deletedWillHoldList) {
+				Member member = hold.getMember();
+				Book book = hold.getBook();
+				member.removeHold(book.getId());
+				book.removeHold(member.getId());
 			}
 			return true;
 		} catch (Exception e) {
@@ -233,5 +236,40 @@ public class Library {
 			return false;
 		}
 		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void retrieve(String fileName) {
+		JSONParser parser = new JSONParser();
+		try {
+			Object obj = parser.parse(new FileReader(fileName));
+			JSONObject jsonObject = (JSONObject) obj;
+
+			JSONArray catalogJSON = (JSONArray) jsonObject.get("Catalog");
+			catalog.retrieve(catalogJSON.iterator());
+			
+			JSONArray memberListJSON = (JSONArray) jsonObject.get("MemberList");
+			memberList.retrieve(memberListJSON.iterator());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public boolean save(String fileName) {
+		PrintWriter writer;
+		JSONObject libraryJSON;
+		try {
+        	writer = new PrintWriter(fileName, "UTF-8");
+        	libraryJSON = new JSONObject();
+            libraryJSON.put("Catalog", catalog.generateCatalog());
+            libraryJSON.put("MemberList", memberList.generateMemberList());
+        	writer.println(libraryJSON.toString());
+            writer.close();
+            return true;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+		return false;
 	}
 }

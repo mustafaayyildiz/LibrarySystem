@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class UserInterface {
 	
-	private static final String FILE_NAME = "LibraryData.txt";
+	private static final String FILE_NAME = "LibraryData.json";
 	private static UserInterface userInterface;
 	private static Library library;
 	private static Scanner scan;
@@ -17,9 +17,9 @@ public class UserInterface {
 	private UserInterface() {
 		File file = new File(FILE_NAME);
 		if (file.exists() && file.canRead()) {
-			
+			library = Library.getInstance();
+			library.retrieve(FILE_NAME);
 		}
-		library = Library.getInstance();
 	}
 	
 	public static UserInterface getInstance() {
@@ -30,7 +30,6 @@ public class UserInterface {
 	}
 	
 	public void process() {
-		library.retrieve();
 		do {
 			help();	
 			System.out.print("Process : ");
@@ -311,9 +310,8 @@ public class UserInterface {
 		return yesOrNo.equalsIgnoreCase("yes") ? true:false;
 	}
 	
-	/* TODO: Not Implemented */
 	private void save() {
-		if (library.save()) {
+		if (library.save(FILE_NAME)) {
 			System.out.println("The library has been successfully saved" );
 		} else {
 			System.out.println("There has been an error in saving \n" );

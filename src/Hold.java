@@ -17,7 +17,7 @@ public class Hold implements Serializable {
 		this.book = book;
 		date = new Date(System.currentTimeMillis());
 		calendar.setTime(date);
-		calendar.add(Calendar.SECOND, duration);
+		calendar.add(Calendar.DATE, duration);
 		date = calendar.getTime();
 	}
 

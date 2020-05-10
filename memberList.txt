@@ -1,6 +1,0 @@
-1,mustafa,camdibi,555
-2,irem,cigli,444
-3,emir,ksk,333
-4,cansu,menemen,222
-5,ahmet,bornova,111
-6,celik,bostanlı,000

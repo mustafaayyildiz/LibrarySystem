@@ -33,11 +33,11 @@ public class Book {
 		boolean removed = false;
 		ListIterator<Hold> iterator = holds.listIterator();
 		while (iterator.hasNext()) {
-			Hold hold = (Hold) iterator.next();
+			Hold hold = iterator.next();
 			String id = hold.getMember().getId();
 			if (id.equals(memberId)) {
 				removed = true;
-				holds.remove(hold);
+				iterator.remove();
 			}
 		}
 		return removed;
@@ -68,10 +68,9 @@ public class Book {
 	}
 	
 	public Hold getNextHold() {
-		Iterator<Hold> iterator = holds.iterator();
+		ListIterator<Hold> iterator = holds.listIterator();
 		while(iterator.hasNext()) {
 			Hold hold = (Hold) iterator.next();
-			holds.remove(hold);
 			if (hold.isValid()) {
 				return hold;
 			}
@@ -79,7 +78,7 @@ public class Book {
 		return null;
 	}
 	
-	public Iterator<Hold> getHolds() {
+	public ListIterator<Hold> getHolds() {
 		return holds.listIterator();
 	}
 	
@@ -123,6 +122,6 @@ public class Book {
 	}
 	
 	public String toString() {
-		return "Book :\n	id : " + id + "\n	title : " + title + "\n	author : " + author;
+		return "Book :\n	id : " + id + "\n	title : " + title + "\n	author : " + author ;
 	}
 }
