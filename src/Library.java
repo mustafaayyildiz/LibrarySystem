@@ -59,6 +59,9 @@ public class Library {
 		if (member == null) {
 			return null;
 		}
+		if (member.getFine() > 0) {
+			return null;
+		}
 		if (!(book.issue(member) && member.issue(book))) {
 			return null;
 		}
@@ -75,6 +78,12 @@ public class Library {
 		if (member == null) {
 			return NOT_FOUND;
 		}
+		
+		double fine = book.computeFine();
+		if (fine > 0) {
+			member.addFine(fine, book.getTitle());
+		}
+		
 		boolean hasHold = book.hasHold();
 		boolean receiveBookFromMember = member.returnBook(book);
 		if (receiveBookFromMember && hasHold) {
@@ -84,6 +93,14 @@ public class Library {
 		}
 		
 		return FAILED;
+	}
+	
+	public Member getBorrower(String bookId) {
+		Book book = catalog.search(bookId);
+		if (book == null) {
+			return null;
+		}
+		return book.getBorrower();
 	}
 	
 	public int removeBook(String bookId) {

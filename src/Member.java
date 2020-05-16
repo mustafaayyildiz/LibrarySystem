@@ -1,8 +1,10 @@
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Iterator;
 
 public class Member {
@@ -13,6 +15,7 @@ public class Member {
 	private List<Hold> booksOnHold = new LinkedList<Hold>();
 	private List<Book> booksBorrowed = new LinkedList<Book>();
 	private List<Transaction> transactions = new LinkedList<Transaction>();
+	private Map<String, Double> fine = new HashMap<String, Double>();
 	
 	public Member (String id, String name, String address, String phone) {
 		this.id = id;
@@ -122,12 +125,22 @@ public class Member {
 	public Iterator<Book> getBooksIssued() {
 		return booksBorrowed.listIterator();
 	}
+	
+	public void addFine(double fine, String title) {
+		this.fine.put(title, fine);
+	}
+	
+	public double getFine() {
+		double total = 0;
+		for (double subTotal : fine.values()) {
+			total += subTotal;
+		}
+		return total;
+	}	
 
 	@Override
 	public String toString() {
 	return "Member : \n	id : " + id + "\n	name : " + name + "\n	address : " + address
 			+ "\n	phone : " + phone;
 	}
-	
-	
 }

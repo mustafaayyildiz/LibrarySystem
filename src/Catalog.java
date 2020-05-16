@@ -52,7 +52,7 @@ public class Catalog {
 	public void retrieve(Iterator<JSONObject> itrCatalog) {
 		while(itrCatalog.hasNext()) {
 			JSONObject book = (JSONObject) itrCatalog.next();
-			books.add(new Book(book.get("BookID").toString(), book.get("BookTitle").toString(), book.get("BookAuthor").toString()));
+			books.add(new Book(book.get("BookID").toString(), book.get("BookTitle").toString(), book.get("BookAuthor").toString(), book.get("AcquisitionDate").toString()));
 		}
 		
 		Iterator<Book> itr = books.iterator();
@@ -73,6 +73,7 @@ public class Catalog {
         	bookJSON.put("BookAuthor", book.getAuthor());
         	Member borrowedBy = book.getBorrower();
         	bookJSON.put("BorrowedBy", borrowedBy != null ? borrowedBy.getId() : "");
+        	bookJSON.put("AcquisitionDate", book.getAcquisitionDate().toInstant().toString());
         	JSONArray holdJSONArray = new JSONArray();
         	Iterator<Hold> holdItr = book.getHolds();
         	while(holdItr.hasNext()) {

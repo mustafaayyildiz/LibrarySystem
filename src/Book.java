@@ -1,9 +1,11 @@
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.TimeUnit;
 
 public class Book {
 	private String id;
@@ -13,18 +15,32 @@ public class Book {
 	private List<Hold> holds = new LinkedList<Hold>();
 	private Calendar calendar = Calendar.getInstance();
 	private Date dueDate;
+	private Date acquisitionDate;
 	
 	public Book(String id, String title, String author) {
 		this.id = id;
 		this.title = title;
 		this.author = author;
+		this.acquisitionDate = new Date();
+	}
+	
+	public Book(String id, String title, String author, String acquisitionDate) {
+		this.id = id;
+		this.title = title;
+		this.author = author;
+		Instant instant = Instant.parse(acquisitionDate);
+		this.acquisitionDate = Date.from(instant);
+	}
+	
+	public boolean matches(String bookId) {
+		return this.id.equals(bookId);
 	}
 	
 	public boolean issue(Member member) {
 		borrowedBy = member;
 		dueDate = new Date();
 		calendar.setTime(dueDate);
-		calendar.add(Calendar.MONTH, 1);
+		calendar.add(Calendar.SECOND, 1);
 		dueDate = calendar.getTime();
 		return true;
 	}
@@ -121,7 +137,34 @@ public class Book {
 		return id;
 	}
 	
+	public Date getAcquisitionDate() {
+		return acquisitionDate;
+	}
+	
+	public double computeFine() {
+		double fine = 0.0;
+		if (System.currentTimeMillis() > dueDate.getTime()) {
+			if (yearApart(acquisitionDate, dueDate)) {
+				fine = 0.15 + 0.05 * daysElapsedSince(dueDate);
+			} else {
+				fine = 0.25 + 0.1 * daysElapsedSince(dueDate);
+			}
+			if (hasHold()) {
+				fine *= 2;
+			}
+		}
+		return fine;
+	}
+	
+	private boolean yearApart(Date acquisitionDate, Date dueDate) {
+		return ((dueDate.getTime() - acquisitionDate.getTime()) / TimeUnit.DAYS.toMillis(1)) > 365;
+	}
+	
+	private int daysElapsedSince(Date date) {
+		return (int) ((System.currentTimeMillis() - date.getTime()) / TimeUnit.SECONDS.toMillis(1));
+	}
+
 	public String toString() {
-		return "Book :\n	id : " + id + "\n	title : " + title + "\n	author : " + author ;
+		return "Book :\n	id : " + id + "\n	title : " + title + "\n	author : " + author +"\n	acquisitionDate : " + acquisitionDate.toInstant();
 	}
 }

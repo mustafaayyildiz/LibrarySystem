@@ -136,7 +136,8 @@ public class UserInterface {
 		formatter = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
 		System.out.print("Enter member id : ");
 		String memberID = scan.nextLine();
-		if (library.searchMembership(memberID) == null) {
+		Member member = library.searchMembership(memberID);
+		if (member == null) {
 			System.out.println("No such member");
 			return;
 		}
@@ -148,6 +149,10 @@ public class UserInterface {
 				System.out.println(result.getTitle() + " -> " + formatter.format(result.getDueDate()));
 			} else {
 				System.out.println("Book could not be issued");
+				double fine = member.getFine();
+				if (fine > 0) {
+					System.out.printf("you must pay your debt before renting a book [%.2f ₺]\n", fine);
+				}
 			}
 			if (!yesOrNo("Issue more books?")) {
 				break;
@@ -161,13 +166,22 @@ public class UserInterface {
 		do {
 			System.out.print("Enter book id : ");
 			String bookID = scan.nextLine();
+			Member member = library.getBorrower(bookID);
 			result = library.returnBook(bookID);
 			if (result == Library.NOT_FOUND) {
 				System.out.println("Invalid Book ID");
 			} else if (result == Library.SUCCESSFULL) {
 				System.out.println("The operation was successful");
+				double fine = member.getFine();
+				if (fine > 0) {
+					System.out.printf("your book debt : [%.2f ₺]\n", fine);
+				}
 			} else if (result == Library.SUCCESSFULL_AND_HOLD) { 
 				System.out.println("The operation was successful and there is a hold on the book.");
+				double fine = member.getFine();
+				if (fine > 0) {
+					System.out.printf("your book debt : [%.2f ₺]\n", fine);
+				}
 			} else {
 				System.out.println("The operation was failed.");
 			}
